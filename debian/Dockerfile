@@ -12,16 +12,17 @@ RUN	apt-key add /tmp/videolan-apt.asc && rm /tmp/videolan-apt.asc \
  && echo 'deb-src http://download.videolan.org/pub/debian/stable/ /' >> /etc/apt/sources.list.d/videolan.list \
  && apt-get update \
  && apt-get -y upgrade \
- && DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends -y install wget rsync inotify-tools git cron bzip2 lame libvorbis-dev vorbis-tools flac libmp3lame-dev libavcodec-extra* libtheora-dev libfaac-dev libvpx-dev libav-tools libfreetype6-dev libicu-dev libjpeg-dev libpng12-dev
+ && DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends -y install wget rsync inotify-tools git cron bzip2 lame libvorbis-dev vorbis-tools flac libmp3lame-dev libavcodec-extra* libtheora-dev libfaac-dev libvpx-dev libav-tools libfreetype6-dev libicu-dev libjpeg-dev libpng12-dev libldap2-dev 
  
 WORKDIR /usr/src/
  
-RUN docker-php-ext-install mysqli pdo_mysql \
+RUN debMultiarch="$(dpkg-architecture --query DEB_BUILD_MULTIARCH)" \
+ && docker-php-ext-configure ldap --with-libdir="lib/$debMultiarch" \
  && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/ \
- && docker-php-ext-install gd \
+ && docker-php-ext-install gd ldap mysqli pdo_mysql \
  && php -r "readfile('https://getcomposer.org/installer');" | php \
  && mv composer.phar /usr/local/bin/composer \
- && echo "upload_max_filesize = 10M;" >> /usr/local/etc/php/conf.d/uploads.ini
+ && echo "upload_max_filesize = 25M;" >> /usr/local/etc/php/conf.d/uploads.ini
  
  
 ADD https://github.com/ampache/ampache/archive/master.tar.gz /usr/src/ampache-master.tar.gz
@@ -34,9 +35,7 @@ RUN mkdir /usr/src/ampache && ln -s /usr/src/ampache /var/www/ampache \
  && rm /var/www/ampache /usr/src/ampache-master.tar.gz
 
 VOLUME ["/media"]
-VOLUME ["/var/www/ampache"]
 VOLUME ["/var/www/ampache/config"]
-VOLUME ["/var/www/ampache/themes"]
 #RUN mkdir /var/www/ampache
 
 EXPOSE 9000 

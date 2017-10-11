@@ -7,11 +7,10 @@ services:
   ampache:
     container_name: ampache
     hostname: ampache
-    build: ../
-    image: victorrds/docker-ampache-fpm:latest
+    image: victorrds/ampache-php-fpm
     volumes:
       - www-data:/var/www/ampache
-      - S:\Music:/media:ro
+      - /music/path:/media:ro
     expose:
       - 9000
     links:
