@@ -22,9 +22,9 @@ echo '30 7    * * *   www-data php /var/www/ampache/bin/catalog_update.inc' >> /
 
 cron
 
-echo 'Start a process to watch for changes in the library with inotify'
 (
-while true; do
+echo 'Start a process to watch for changes in the library with inotify'
+while $NOTIFY_CHANGES; do
     inotifywatch /media
     php /var/www/ampache/bin/catalog_update.inc -a
     sleep 30

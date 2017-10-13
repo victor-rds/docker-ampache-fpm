@@ -42,6 +42,7 @@ EXPOSE 9000
  
 COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod 555 /entrypoint.sh
+ENV NOTIFY_CHANGES=true
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 #CMD [ "php-fpm" ]
