@@ -1,20 +1,23 @@
-FROM php:fpm
+FROM php:7.1-fpm
 
 MAINTAINER Victor Rezende dos Santos
 
+WORKDIR /usr/src/
+
+RUN export DEBIAN_RELEASE=`dpkg --status tzdata|grep Provides|cut -f2 -d'-'` \
+ &&	echo "deb http://http.debian.net/debian/ ${DEBIAN_RELEASE} main contrib non-free" > /etc/apt/sources.list \
+ && echo "deb http://http.debian.net/debian/ ${DEBIAN_RELEASE}-updates main contrib non-free" >> /etc/apt/sources.list \
+ && echo "deb http://security.debian.org/ ${DEBIAN_RELEASE}/updates main contrib non-free" >> /etc/apt/sources.list \
+ && apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends -y install wget gnupg rsync inotify-tools git cron lame libldap2-dev
+ 
 ADD https://download.videolan.org/pub/debian/videolan-apt.asc /tmp/videolan-apt.asc
 
 RUN	apt-key add /tmp/videolan-apt.asc && rm /tmp/videolan-apt.asc \
- && echo 'deb http://http.debian.net/debian/ jessie main contrib non-free' > /etc/apt/sources.list \
- && echo 'deb http://http.debian.net/debian/ jessie-updates main contrib non-free' >> /etc/apt/sources.list \
- && echo 'deb http://security.debian.org/ jessie/updates main contrib non-free' >> /etc/apt/sources.list \
- && echo 'deb http://download.videolan.org/pub/debian/stable/ /' > /etc/apt/sources.list.d/videolan.list \
- && echo 'deb-src http://download.videolan.org/pub/debian/stable/ /' >> /etc/apt/sources.list.d/videolan.list \
- && apt-get update \
- && apt-get -y upgrade \
- && DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends -y install wget rsync inotify-tools git cron bzip2 lame libvorbis-dev vorbis-tools flac libmp3lame-dev libavcodec-extra* libtheora-dev libfaac-dev libvpx-dev libav-tools libfreetype6-dev libicu-dev libjpeg-dev libpng12-dev libldap2-dev 
- 
-WORKDIR /usr/src/
+	&& echo 'deb http://download.videolan.org/pub/debian/stable/ /' > /etc/apt/sources.list.d/videolan.list \
+	&& echo 'deb-src http://download.videolan.org/pub/debian/stable/ /' >> /etc/apt/sources.list.d/videolan.list \
+	&& apt-get update \
+	&& DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends -y install libvorbis-dev vorbis-tools flac libmp3lame-dev libavcodec-extra* libtheora-dev libfaac-dev libvpx-dev libav-tools libfreetype6-dev libicu-dev libjpeg-dev libpng-dev
  
 RUN debMultiarch="$(dpkg-architecture --query DEB_BUILD_MULTIARCH)" \
  && docker-php-ext-configure ldap --with-libdir="lib/$debMultiarch" \
@@ -23,7 +26,6 @@ RUN debMultiarch="$(dpkg-architecture --query DEB_BUILD_MULTIARCH)" \
  && php -r "readfile('https://getcomposer.org/installer');" | php \
  && mv composer.phar /usr/local/bin/composer \
  && echo "upload_max_filesize = 25M;" >> /usr/local/etc/php/conf.d/uploads.ini
- 
  
 ADD https://github.com/ampache/ampache/archive/master.tar.gz /usr/src/ampache-master.tar.gz
 #ADD ampache.cfg.php.dist /var/temp/ampache.cfg.php.dist
